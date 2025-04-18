@@ -1,4 +1,3 @@
-
 const express = require("express");
 const Repair = require("../models/Repair");
 const Item = require("../models/Item");
@@ -80,7 +79,7 @@ router.put("/:id/complete", auth, trailLogger("repair"), async (req, res) => {
     }
 
     // Update repair record
-    repair.status = "Completed";
+    repair.status = "Fixed";  // Changed from "Completed" to "Fixed"
     repair.diagnosis = diagnosis;
     repair.checkedBy = checkedBy || req.user._id;
     repair.updatedAt = new Date();
@@ -97,6 +96,42 @@ router.put("/:id/complete", auth, trailLogger("repair"), async (req, res) => {
 
     await repair.save();
 
+    res.send(repair);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Add new endpoint to mark repair as defective
+router.put("/:id/defective", auth, trailLogger("repair"), async (req, res) => {
+  try {
+    const { reason } = req.body;
+
+    const repair = await Repair.findOne({
+      _id: req.params.id,
+      status: "Ongoing",
+    });
+
+    if (!repair) {
+      return res.status(404).send({ error: "Repair record not found" });
+    }
+
+    // Update repair record to defective
+    repair.status = "Defective";
+    repair.diagnosis = reason;
+    repair.updatedAt = new Date();
+    repair.updatedBy = req.user._id;
+
+    // Keep the item status as defective
+    const item = await Item.findById(repair.itemId);
+    if (item) {
+      item.status = "Defective";
+      item.updatedAt = new Date();
+      item.updatedBy = req.user._id;
+      await item.save();
+    }
+
+    await repair.save();
     res.send(repair);
   } catch (error) {
     res.status(500).send({ error: error.message });

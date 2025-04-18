@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const repairSchema = new mongoose.Schema({
@@ -20,7 +21,7 @@ const repairSchema = new mongoose.Schema({
   deletedReason: { type: String },
   status: {
     type: String,
-    enum: ["Ongoing", "Completed", "Deleted"],
+    enum: ["Ongoing", "Fixed", "Defective", "Deleted"],
     default: "Ongoing",
   },
 });

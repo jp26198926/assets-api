@@ -1,3 +1,4 @@
+
 const express = require("express");
 const Area = require("../models/Area");
 const { auth } = require("../middleware/auth");
@@ -26,7 +27,9 @@ router.post("/", auth, trailLogger("area"), async (req, res) => {
 // Get all areas
 router.get("/", auth, async (req, res) => {
   try {
-    const areas = await Area.find({ status: "Active" }).sort({ area: 1 });
+    // Change to return all areas, not just active ones
+    // Front-end filtering will handle showing only active ones by default
+    const areas = await Area.find().sort({ area: 1 });
 
     res.send(areas);
   } catch (error) {
