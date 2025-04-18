@@ -140,7 +140,7 @@ router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
       issuance.updatedBy = req.user._id;
       issuance.remarks = remarks;
 
-      // Only when surrendering, change item status to Active
+      // When surrendering, explicitly set item status to Active
       item.status = "Active";
       item.updatedAt = new Date();
       item.updatedBy = req.user._id;
@@ -153,7 +153,7 @@ router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
   }
 });
 
-// Delete issuance
+// Delete issuance (soft delete)
 router.delete("/:id", auth, trailLogger("issuance"), async (req, res) => {
   try {
     const issuance = await Issuance.findById(req.params.id);
@@ -162,15 +162,17 @@ router.delete("/:id", auth, trailLogger("issuance"), async (req, res) => {
       return res.status(404).send({ error: "Issuance not found" });
     }
 
+    // Check if the issuance is active BEFORE changing its status
+    const wasActive = issuance.status === "Active";
+    
+    // Update issuance status to deleted
     issuance.status = "Deleted";
     issuance.deletedAt = new Date();
     issuance.deletedBy = req.user._id;
     issuance.deletedReason = req.body.reason;
     
-    await issuance.save();
-
-    // If issuance is deleted, free up the item
-    if (issuance.status === "Active") {
+    // If issuance was active before deletion, update the item status to Active
+    if (wasActive) {
       const item = await Item.findById(issuance.itemId);
       if (item && item.status === "Assigned") {
         item.status = "Active";
@@ -180,6 +182,7 @@ router.delete("/:id", auth, trailLogger("issuance"), async (req, res) => {
       }
     }
 
+    await issuance.save();
     res.send({ message: "Issuance deleted successfully" });
   } catch (error) {
     res.status(500).send({ error: error.message });
