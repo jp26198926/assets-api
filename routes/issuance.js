@@ -11,7 +11,7 @@ const router = express.Router();
 // Create a new issuance
 router.post("/", auth, trailLogger("issuance"), async (req, res) => {
   try {
-    const { date, itemId, roomId } = req.body;
+    const { date, itemId, roomId, remarks } = req.body;
 
     const item = await Item.findOne({
       _id: itemId,
@@ -37,6 +37,7 @@ router.post("/", auth, trailLogger("issuance"), async (req, res) => {
       roomId,
       assignedBy: req.user._id,
       createdBy: req.user._id,
+      remarks,
     });
 
     item.status = "Assigned";
@@ -90,6 +91,11 @@ router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
       return res.status(404).send({ error: "Issuance not found" });
     }
 
+    const item = await Item.findById(issuance.itemId);
+    if (!item) {
+      return res.status(404).send({ error: "Item not found" });
+    }
+
     if (status === "Transferred") {
       if (!newRoomId) {
         return res.status(400).send({ error: "New room ID is required for transfer" });
@@ -120,7 +126,12 @@ router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
       issuance.updatedBy = req.user._id;
       issuance.remarks = remarks;
 
-      await Promise.all([newIssuance.save(), issuance.save()]);
+      // Keep item status as "Assigned" during transfer
+      item.status = "Assigned";
+      item.updatedAt = new Date();
+      item.updatedBy = req.user._id;
+
+      await Promise.all([newIssuance.save(), issuance.save(), item.save()]);
       res.send(newIssuance);
     } else {
       // Surrender case
@@ -129,15 +140,12 @@ router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
       issuance.updatedBy = req.user._id;
       issuance.remarks = remarks;
 
-      const item = await Item.findById(issuance.itemId);
-      if (item) {
-        item.status = "Active";
-        item.updatedAt = new Date();
-        item.updatedBy = req.user._id;
-        await item.save();
-      }
+      // Only when surrendering, change item status to Active
+      item.status = "Active";
+      item.updatedAt = new Date();
+      item.updatedBy = req.user._id;
 
-      await issuance.save();
+      await Promise.all([issuance.save(), item.save()]);
       res.send(issuance);
     }
   } catch (error) {
@@ -157,8 +165,20 @@ router.delete("/:id", auth, trailLogger("issuance"), async (req, res) => {
     issuance.status = "Deleted";
     issuance.deletedAt = new Date();
     issuance.deletedBy = req.user._id;
+    issuance.deletedReason = req.body.reason;
     
     await issuance.save();
+
+    // If issuance is deleted, free up the item
+    if (issuance.status === "Active") {
+      const item = await Item.findById(issuance.itemId);
+      if (item && item.status === "Assigned") {
+        item.status = "Active";
+        item.updatedAt = new Date();
+        item.updatedBy = req.user._id;
+        await item.save();
+      }
+    }
 
     res.send({ message: "Issuance deleted successfully" });
   } catch (error) {
