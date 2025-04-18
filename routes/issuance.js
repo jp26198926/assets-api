@@ -66,6 +66,9 @@ router.get("/", auth, async (req, res) => {
       })
       .populate("roomId")
       .populate("assignedBy", "firstname lastname")
+      .populate("createdBy", "firstname lastname")
+      .populate("updatedBy", "firstname lastname")
+      .populate("deletedBy", "firstname lastname")
       .sort({ date: -1 });
 
     res.send(issuances);
