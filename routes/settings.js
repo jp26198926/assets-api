@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     
     if (!settings) {
       settings = new Settings({
-        appName: "Asset Nexus",
+        appName: "noAssets", // Changed from "Asset Nexus"
         companyName: "",
         logoUrl: "",
       });
