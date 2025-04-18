@@ -1,3 +1,4 @@
+
 const express = require("express");
 const Item = require("../models/Item");
 const Repair = require("../models/Repair");
@@ -59,6 +60,9 @@ router.get("/", auth, async (req, res) => {
   try {
     const items = await Item.find({ status: { $ne: "Deleted" } })
       .populate("typeId")
+      .populate("createdBy", "firstname lastname")
+      .populate("updatedBy", "firstname lastname")
+      .populate("deletedBy", "firstname lastname")
       .sort({ createdAt: -1 });
 
     res.send(items);
@@ -73,7 +77,11 @@ router.get("/:id", auth, async (req, res) => {
     const item = await Item.findOne({
       _id: req.params.id,
       status: { $ne: "Deleted" },
-    }).populate("typeId");
+    })
+    .populate("typeId")
+    .populate("createdBy", "firstname lastname")
+    .populate("updatedBy", "firstname lastname")
+    .populate("deletedBy", "firstname lastname");
 
     if (!item) {
       return res.status(404).send({ error: "Item not found" });
@@ -162,7 +170,11 @@ router.get("/:id/history", auth, async (req, res) => {
     const item = await Item.findOne({
       _id: itemId,
       status: { $ne: "Deleted" },
-    }).populate("typeId");
+    })
+    .populate("typeId")
+    .populate("createdBy", "firstname lastname")
+    .populate("updatedBy", "firstname lastname")
+    .populate("deletedBy", "firstname lastname");
 
     if (!item) {
       return res.status(404).send({ error: "Item not found" });
