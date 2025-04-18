@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const Settings = require("../models/Settings");
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 
 // Get settings
 router.get("/", async (req, res) => {
