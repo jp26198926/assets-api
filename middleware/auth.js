@@ -1,14 +1,16 @@
-
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 const auth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization').replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-    const user = await User.findOne({ 
-      _id: decoded.id, 
-      status: 'active' 
+    const token = req.header("Authorization").replace("Bearer ", "");
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "your_jwt_secret"
+    );
+    const user = await User.findOne({
+      _id: decoded.id,
+      status: "Active",
     });
 
     if (!user) {
@@ -19,13 +21,15 @@ const auth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    res.status(401).send({ error: 'Please authenticate.' });
+    res.status(401).send({ error: "Please authenticate." });
   }
 };
 
 const adminAuth = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).send({ error: 'Access denied. Admin rights required.' });
+  if (req.user.role !== "Admin") {
+    return res
+      .status(403)
+      .send({ error: "Access denied. Admin rights required." });
   }
   next();
 };

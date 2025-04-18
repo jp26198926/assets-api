@@ -1,14 +1,16 @@
 
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const trailSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   action: { type: String, required: true },
-  entity: { type: String, required: true }, // 'user', 'item', 'room', 'assign', 'repair'
+  entity: { type: String, required: true },
   entityId: { type: mongoose.Schema.Types.ObjectId, required: true },
   details: { type: String },
   ip: { type: String },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
+  viewedAt: { type: Date },
+  viewedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 });
 
-module.exports = mongoose.model('Trail', trailSchema);
+module.exports = mongoose.model("Trail", trailSchema);
