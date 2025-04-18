@@ -1,3 +1,4 @@
+
 const express = require("express");
 const Repair = require("../models/Repair");
 const Item = require("../models/Item");
@@ -47,9 +48,15 @@ router.post("/", auth, trailLogger("repair"), async (req, res) => {
 router.get("/", auth, async (req, res) => {
   try {
     const repairs = await Repair.find({ status: { $ne: "Deleted" } })
-      .populate("itemId")
+      .populate({
+        path: "itemId",
+        populate: { path: "typeId" }
+      })
       .populate("reportBy", "firstname lastname")
       .populate("checkedBy", "firstname lastname")
+      .populate("createdBy", "firstname lastname")
+      .populate("updatedBy", "firstname lastname")
+      .populate("deletedBy", "firstname lastname")
       .sort({ date: -1 });
 
     res.send(repairs);
