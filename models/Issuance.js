@@ -11,6 +11,7 @@ const issuanceSchema = new mongoose.Schema({
     required: true,
   },
   remarks: { type: String },
+  signature: { type: String },
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   updatedAt: { type: Date },

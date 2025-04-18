@@ -11,7 +11,7 @@ const router = express.Router();
 // Create a new issuance
 router.post("/", auth, trailLogger("issuance"), async (req, res) => {
   try {
-    const { date, itemId, roomId, remarks } = req.body;
+    const { date, itemId, roomId, remarks, signature } = req.body;
 
     const item = await Item.findOne({
       _id: itemId,
@@ -38,6 +38,7 @@ router.post("/", auth, trailLogger("issuance"), async (req, res) => {
       assignedBy: req.user._id,
       createdBy: req.user._id,
       remarks,
+      signature,
     });
 
     item.status = "Assigned";
@@ -76,7 +77,7 @@ router.get("/", auth, async (req, res) => {
 // Update issuance status (transfer/surrender)
 router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
   try {
-    const { status, newRoomId, remarks } = req.body;
+    const { status, newRoomId, remarks, signature } = req.body;
 
     if (!["Transferred", "Surrendered"].includes(status)) {
       return res.status(400).send({ error: "Invalid status" });
@@ -117,7 +118,8 @@ router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
         roomId: newRoomId,
         assignedBy: req.user._id,
         createdBy: req.user._id,
-        remarks
+        remarks,
+        signature
       });
 
       // Update old issuance
@@ -139,6 +141,7 @@ router.put("/:id/status", auth, trailLogger("issuance"), async (req, res) => {
       issuance.updatedAt = new Date();
       issuance.updatedBy = req.user._id;
       issuance.remarks = remarks;
+      issuance.signature = signature;
 
       // When surrendering, explicitly set item status to Active
       item.status = "Active";
