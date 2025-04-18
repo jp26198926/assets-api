@@ -7,16 +7,41 @@ const trailLogger = require("../middleware/trailLogger");
 
 const router = express.Router();
 
+// Generate unique barcodeId
+const generateBarcodeId = async () => {
+  const year = new Date().getFullYear().toString().slice(-2);
+  let unique = false;
+  let barcodeId;
+  
+  while (!unique) {
+    // Generate a random 5-digit number
+    const random = Math.floor(10000 + Math.random() * 90000);
+    barcodeId = `IT${year}${random}`;
+    
+    // Check if this barcodeId already exists
+    const existing = await Item.findOne({ barcodeId });
+    if (!existing) {
+      unique = true;
+    }
+  }
+  
+  return barcodeId;
+};
+
 // Create a new item
 router.post("/", auth, trailLogger("item"), async (req, res) => {
   try {
     const { typeId, itemName, brand, serialNo, otherDetails } = req.body;
+    
+    // Generate unique barcodeId
+    const barcodeId = await generateBarcodeId();
 
     const item = new Item({
       typeId,
       itemName,
       brand,
       serialNo,
+      barcodeId,
       otherDetails,
       createdBy: req.user._id,
     });
