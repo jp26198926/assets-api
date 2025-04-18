@@ -13,6 +13,7 @@ const issuanceRoutes = require("./routes/issuance");
 const repairRoutes = require("./routes/repairs");
 const trailRoutes = require("./routes/trails");
 const areaRoutes = require("./routes/areas");
+const settingsRoutes = require("./routes/settings");
 
 // Load environment variables
 dotenv.config();
@@ -39,10 +40,11 @@ app.use("/api/users", userRoutes);
 app.use("/api/itemTypes", itemTypeRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/rooms", roomRoutes);
-app.use("/api/issuance", issuanceRoutes); // Updated route
+app.use("/api/issuance", issuanceRoutes);
 app.use("/api/repairs", repairRoutes);
 app.use("/api/trails", trailRoutes);
 app.use("/api/areas", areaRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

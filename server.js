@@ -140,6 +140,17 @@ const Room = mongoose.model("Room", roomSchema);
 const Assign = mongoose.model("Assign", assignSchema);
 const Repair = mongoose.model("Repair", repairSchema);
 
+// Add Settings Schema
+const settingsSchema = new mongoose.Schema({
+  appName: { type: String, required: true },
+  companyName: { type: String },
+  logoUrl: { type: String },
+  updatedAt: { type: Date },
+  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+});
+
+const Settings = mongoose.model("Settings", settingsSchema);
+
 // Middleware for JWT authentication
 const auth = async (req, res, next) => {
   try {
@@ -587,6 +598,55 @@ app.put("/api/repairs/:id/complete", auth, async (req, res) => {
     await repair.save();
 
     res.send(repair);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Settings Routes
+app.get("/api/settings", auth, async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    
+    if (!settings) {
+      // Create default settings if none exist
+      settings = new Settings({
+        appName: "Asset Nexus",
+        companyName: "",
+        logoUrl: "",
+      });
+      await settings.save();
+    }
+    
+    res.send(settings);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+app.put("/api/settings", auth, async (req, res) => {
+  try {
+    const { appName, companyName, logoUrl } = req.body;
+    
+    let settings = await Settings.findOne();
+    
+    if (!settings) {
+      settings = new Settings({
+        appName,
+        companyName,
+        logoUrl,
+      });
+    } else {
+      settings.appName = appName;
+      settings.companyName = companyName;
+      settings.logoUrl = logoUrl;
+    }
+    
+    settings.updatedAt = new Date();
+    settings.updatedBy = req.user._id;
+    
+    await settings.save();
+    res.send(settings);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
