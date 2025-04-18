@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const issuanceSchema = new mongoose.Schema({
@@ -9,6 +10,7 @@ const issuanceSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  remarks: { type: String },
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   updatedAt: { type: Date },
