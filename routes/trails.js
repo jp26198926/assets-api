@@ -2,6 +2,7 @@
 const express = require('express');
 const Trail = require('../models/Trail');
 const { auth, adminAuth } = require('../middleware/auth');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 

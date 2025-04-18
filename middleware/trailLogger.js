@@ -1,4 +1,6 @@
+
 const Trail = require("../models/Trail");
+const mongoose = require("mongoose");
 
 const trailLogger = (entity) => {
   return async (req, res, next) => {
@@ -17,7 +19,8 @@ const trailLogger = (entity) => {
         } else if (body && body._id) {
           entityId = body._id;
         } else if (body && Array.isArray(body) && body[0] && body[0]._id) {
-          entityId = "multiple";
+          // For arrays of entities, we use a special identifier rather than "multiple"
+          entityId = "batch-operation-" + new Date().getTime();
         }
 
         if (entityId) {
