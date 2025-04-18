@@ -73,11 +73,41 @@ router.delete('/:id', auth, trailLogger('itemType'), async (req, res) => {
   }
 });
 
-// Check if item type is in use
+// Check if item type is in use - individual check
 router.get('/:id/usage', auth, async (req, res) => {
   try {
     const itemsUsingType = await Item.findOne({ typeId: req.params.id });
     res.send({ inUse: !!itemsUsingType });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+// Check multiple item types usage status in one request
+router.post('/usage/bulk', auth, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    
+    if (!ids || !Array.isArray(ids)) {
+      return res.status(400).send({ error: 'Invalid request. Expected an array of IDs.' });
+    }
+    
+    const results = {};
+    
+    // Use a more efficient query to get all items using any of these types
+    const itemsUsingTypes = await Item.find({ 
+      typeId: { $in: ids } 
+    }).select('typeId').lean();
+    
+    // Create a Set of typeIds that are in use
+    const usedTypeIds = new Set(itemsUsingTypes.map(item => item.typeId.toString()));
+    
+    // Map results
+    ids.forEach(id => {
+      results[id] = usedTypeIds.has(id.toString());
+    });
+    
+    res.send({ results });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
