@@ -1,4 +1,3 @@
-
 const express = require("express");
 const Item = require("../models/Item");
 const Repair = require("../models/Repair");
@@ -32,7 +31,7 @@ const generateBarcodeId = async () => {
 // Create a new item
 router.post("/", auth, trailLogger("item"), async (req, res) => {
   try {
-    const { typeId, itemName, brand, serialNo, otherDetails } = req.body;
+    const { typeId, itemName, brand, serialNo, otherDetails, photo } = req.body;
     
     // Generate unique barcodeId
     const barcodeId = await generateBarcodeId();
@@ -44,6 +43,7 @@ router.post("/", auth, trailLogger("item"), async (req, res) => {
       serialNo,
       barcodeId,
       otherDetails,
+      photo,
       createdBy: req.user._id,
     });
 

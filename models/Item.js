@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const itemSchema = new mongoose.Schema({
@@ -10,8 +9,9 @@ const itemSchema = new mongoose.Schema({
   itemName: { type: String, required: true },
   brand: { type: String, required: true },
   serialNo: { type: String, required: true, unique: true },
-  barcodeId: { type: String, unique: true }, // New field
+  barcodeId: { type: String, unique: true },
   otherDetails: { type: String },
+  photo: { type: String },
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   updatedAt: { type: Date },
