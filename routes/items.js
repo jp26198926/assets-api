@@ -93,6 +93,27 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
+// Get an item by barcodeId
+router.get("/barcode/:barcodeId", auth, async (req, res) => {
+  try {
+    const item = await Item.findOne({
+      barcodeId: req.params.barcodeId,
+      status: { $ne: "Deleted" }
+    })
+    .populate("typeId")
+    .populate("createdBy", "firstname lastname")
+    .populate("updatedBy", "firstname lastname")
+    .populate("deletedBy", "firstname lastname");
+
+    if (!item) {
+      return res.status(404).send({ error: "Item not found" });
+    }
+    res.send(item);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 // Update an item
 router.put("/:id", auth, trailLogger("item"), async (req, res) => {
   try {
