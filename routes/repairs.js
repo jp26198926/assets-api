@@ -3,6 +3,7 @@ const Repair = require("../models/Repair");
 const Item = require("../models/Item");
 const { auth } = require("../middleware/auth");
 const trailLogger = require("../middleware/trailLogger");
+const Assign = require("../models/Assign");
 
 const router = express.Router();
 
@@ -78,17 +79,23 @@ router.put("/:id/complete", auth, trailLogger("repair"), async (req, res) => {
       return res.status(404).send({ error: "Repair record not found" });
     }
 
+    // Get the latest assignment for this item
+    const latestAssignment = await Assign.findOne({
+      itemId: repair.itemId,
+      status: "Active",
+    }).sort({ date: -1 });
+
     // Update repair record
-    repair.status = "Fixed";  // Changed from "Completed" to "Fixed"
+    repair.status = "Fixed";
     repair.diagnosis = diagnosis;
     repair.checkedBy = checkedBy || req.user._id;
     repair.updatedAt = new Date();
     repair.updatedBy = req.user._id;
 
-    // Update item status back to active
+    // Update item status back to "Assigned" if there's an active assignment, otherwise "Active"
     const item = await Item.findById(repair.itemId);
     if (item) {
-      item.status = "Active";
+      item.status = latestAssignment ? "Assigned" : "Active";
       item.updatedAt = new Date();
       item.updatedBy = req.user._id;
       await item.save();
